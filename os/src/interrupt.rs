@@ -47,12 +47,12 @@ pub unsafe fn enable_serial_interrupt() {
 pub fn rust_trap(tf: &mut TrapFrame) {
     match tf.scause.cause() {
         Trap::Exception(Exception::Breakpoint) => breakpoint(&mut tf.sepc), //ebreak
-        Trap::Interrupt(Interrupt::SupervisorTimer) => super_timer(), //shizhongzhongduan
-        Trap::Exception(Exception::InstructionPageFault) => page_fault(tf), //yebiaocuowu
-        Trap::Exception(Exception::LoadPageFault) => page_fault(tf), //
-        Trap::Exception(Exception::StorePageFault) => page_fault(tf), //
-        Trap::Exception(Exception::UserEnvCall) => syscall(tf), //syscall xitongdiaoyong
-        Trap::Interrupt(Interrupt::SupervisorExternal) => external(), //waibuzhongduan
+        Trap::Interrupt(Interrupt::SupervisorTimer) => super_timer(), //ClockInterrupt
+        Trap::Exception(Exception::InstructionPageFault) => page_fault(tf), //InstructionPageFault
+        Trap::Exception(Exception::LoadPageFault) => page_fault(tf), //LoadPageFault
+        Trap::Exception(Exception::StorePageFault) => page_fault(tf), //StorePageFault
+        Trap::Exception(Exception::UserEnvCall) => syscall(tf), //syscall
+        Trap::Interrupt(Interrupt::SupervisorExternal) => external(), //ExternalInterrupt
         _ => panic!("undefined trap!"), // mret zaizhele
     }
 }
