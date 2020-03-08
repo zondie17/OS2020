@@ -30,6 +30,7 @@ unsafe {
 
 捕获及处理结构见下图：
 
-<img src="/Users/zhangyiwei/IdeaProjects/os/rCore_tutorial/report/lab1.png" style="zoom:50%;" />
+<img src="./lab1.png" style="zoom:50%;" />
 
 即在`rust_main`函数中触发非法指令`mret`，`mret`指令是用于`M`态中断返回到`S`态或`U`态，而此时在`S`态，调用即会产生异常；之后由于此异常不属于现有的几种情况，在`_`类下处理，即有`print & panic`。
+
