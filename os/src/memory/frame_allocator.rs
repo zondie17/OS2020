@@ -1,7 +1,7 @@
 use crate::consts::MAX_PHYSICAL_PAGES;
 use spin::Mutex;
 
-pub struct SegmentTreeAllocator {
+/*pub struct SegmentTreeAllocator {
     a: [u8; MAX_PHYSICAL_PAGES << 1],
     m: usize,
     n: usize,
@@ -65,6 +65,73 @@ impl SegmentTreeAllocator {
 pub static SEGMENT_TREE_ALLOCATOR: Mutex<SegmentTreeAllocator> = Mutex::new(SegmentTreeAllocator {
     a: [0; MAX_PHYSICAL_PAGES << 1],
     m: 0,
+    n: 0,
+    offset: 0,
+});*/
+
+pub struct FirstFitAllocator {
+    a: [u8; MAX_PHYSICAL_PAGES],
+    n: usize,
+    offset: usize,
+}
+
+impl FirstFitAllocator {
+    pub fn init(&mut self, l: usize, r: usize) {
+        self.offset = l;
+        self.n = r - l;
+        for i in 0..self.n {
+            self.a[i] = 0;
+        }
+    }
+
+    pub fn alloc(&mut self, cnt: usize) -> Option<usize> {
+        // assume that we never run out of physical memory
+        // let mut pan = false;
+        // for i in 0..self.n {
+        //     if self.a[i] == 0 {
+        //         pan = true;
+        //     }
+        // }
+        // if pan == false {
+        //     panic!("physical memory depleted!");
+        // }
+        let mut page = 0;
+        let mut len = 0;
+        let mut find = false;
+        for i in 0..self.n {
+            if self.a[i] == 1 {
+                page = i+1;
+                len = 0;
+            } else {
+                len += 1;
+            }
+            if len >= cnt && self.a[page] == 0 {
+                find = true;
+                break;
+            }
+        }
+
+        return if find == true {
+            for i in page..(page + cnt) {
+                self.a[i] = 1;
+            }
+            Some(page + self.offset)
+        } else {
+            None
+        }
+    }
+
+    pub fn dealloc(&mut self, f: usize, cnt: usize) {
+        for i in f..(f+cnt) {
+            // assert_eq!(self.a[i], 1);
+            self.a[i - self.offset] = 0;
+        }
+    }
+
+}
+
+pub static FIRST_FIT_ALLOCATOR: Mutex<FirstFitAllocator> = Mutex::new(FirstFitAllocator {
+    a: [0; MAX_PHYSICAL_PAGES],
     n: 0,
     offset: 0,
 });
