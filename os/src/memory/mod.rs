@@ -4,8 +4,8 @@ pub mod paging;
 
 use crate::consts::*;
 use buddy_system_allocator::LockedHeap;
-// use frame_allocator::SEGMENT_TREE_ALLOCATOR as FRAME_ALLOCATOR;
-use frame_allocator::FIRST_FIT_ALLOCATOR as FRAME_ALLOCATOR;
+use frame_allocator::SEGMENT_TREE_ALLOCATOR as FRAME_ALLOCATOR;
+// use frame_allocator::FIRST_FIT_ALLOCATOR as FRAME_ALLOCATOR;
 use memory_set::{attr::MemoryAttr, handler::Linear, MemorySet};
 use riscv::addr::{Frame, Page, PhysAddr, VirtAddr};
 use riscv::register::sstatus;
@@ -20,14 +20,17 @@ pub fn init(l: usize, r: usize) {
     println!("++++ setup memory!    ++++");
 }
 
-/*pub fn alloc_frame() -> Option<Frame> {
+pub fn alloc_frame() -> Option<Frame> {
     Some(Frame::of_ppn(FRAME_ALLOCATOR.lock().alloc()))
 }
 
 pub fn dealloc_frame(f: Frame) {
     FRAME_ALLOCATOR.lock().dealloc(f.number())
-}*/
+}
 
+
+// lab2
+/*
 pub fn init_allocator(l: usize, r: usize) {
     FRAME_ALLOCATOR.lock().init(l, r);
 }
@@ -51,7 +54,7 @@ pub fn dealloc_frame(f: Frame) {
 // 释放以 f 为起始地址，cnt 块连续的帧
 pub fn dealloc_frames(f: Frame, cnt: usize) {
     FRAME_ALLOCATOR.lock().dealloc(f.number(), cnt)
-}
+}*/
 
 
 fn init_heap() {

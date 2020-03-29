@@ -1,7 +1,7 @@
 use crate::consts::MAX_PHYSICAL_PAGES;
 use spin::Mutex;
 
-/*pub struct SegmentTreeAllocator {
+pub struct SegmentTreeAllocator {
     a: [u8; MAX_PHYSICAL_PAGES << 1],
     m: usize,
     n: usize,
@@ -67,8 +67,10 @@ pub static SEGMENT_TREE_ALLOCATOR: Mutex<SegmentTreeAllocator> = Mutex::new(Segm
     m: 0,
     n: 0,
     offset: 0,
-});*/
+});
 
+// lab2
+/*
 pub struct FirstFitAllocator {
     a: [u8; MAX_PHYSICAL_PAGES],
     n: usize,
@@ -134,4 +136,4 @@ pub static FIRST_FIT_ALLOCATOR: Mutex<FirstFitAllocator> = Mutex::new(FirstFitAl
     a: [0; MAX_PHYSICAL_PAGES],
     n: 0,
     offset: 0,
-});
+});*/
