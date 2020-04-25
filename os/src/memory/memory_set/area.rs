@@ -6,10 +6,10 @@ use spin::Mutex;
 
 #[derive(Debug, Clone)]
 pub struct MemoryArea {
-    start: usize,
-    end: usize,
-    handler: Box<dyn MemoryHandler>,
-    attr: MemoryAttr,
+    pub start: usize,
+    pub end: usize,
+    pub handler: Box<dyn MemoryHandler>,
+    pub attr: MemoryAttr,
 }
 
 impl MemoryArea {

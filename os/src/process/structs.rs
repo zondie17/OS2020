@@ -1,7 +1,7 @@
 use super::{ExitCode, Tid};
 use crate::alloc::alloc::{alloc, dealloc, Layout};
 use crate::consts::*;
-use crate::context::Context;
+use crate::context::{Context, TrapFrame};
 use crate::memory::memory_set::{
     attr::MemoryAttr, handler::ByFrame, handler::ByFrameSwappingOut, handler::ByFrameWithRpa,
     MemorySet,
@@ -31,6 +31,7 @@ pub struct Thread {
     pub kstack: KernelStack,
     pub wait: Option<Tid>,
     pub ofile: [Option<Arc<Mutex<File>>>; NOFILE],
+    pub vm: Option<Arc<Mutex<MemorySet>>>
 }
 
 impl Thread {
@@ -48,6 +49,7 @@ impl Thread {
                 kstack: kstack_,
                 wait: None,
                 ofile: [None; NOFILE],
+                vm: None,
             })
         }
     }
@@ -58,6 +60,7 @@ impl Thread {
             kstack: KernelStack::new_empty(),
             wait: None,
             ofile: [None; NOFILE],
+            vm: None,
         })
     }
 
@@ -104,6 +107,7 @@ impl Thread {
             kstack: kstack,
             wait: wait_thread,
             ofile: [None; NOFILE],
+            vm: Some(Arc::new(Mutex::new(vm))),
         };
         for i in 0..3 {
             thread.ofile[i] = Some(Arc::new(Mutex::new(File::default())));
@@ -111,6 +115,21 @@ impl Thread {
         Box::new(thread)
         
     }
+
+    /// Fork a new process from current one
+        pub fn fork(&self, tf: &TrapFrame) -> Box<Thread> {
+            let kstack = KernelStack::new();                    // 分配新的栈
+            let vm = self.vm.as_ref().unwrap().lock().clone();  // 为变量分配内存，将虚拟地址映射到新的内存上
+            let vm_token = vm.token();
+            let context = unsafe { Context::new_fork(tf, kstack.top(), vm_token) }; // 复制上下文到 kernel stack 上
+            Box::new(Thread {
+                context,
+                kstack,
+                wait: self.wait.clone(),
+                ofile: self.ofile.clone(),
+                vm: Some(Arc::new(Mutex::new(vm))),
+            })
+        }
 
     // 分配文件描述符
     pub fn alloc_fd(&mut self) -> i32 {

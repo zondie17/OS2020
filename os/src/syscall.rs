@@ -8,9 +8,18 @@ pub const SYS_WRITE: usize = 64;
 pub const SYS_EXIT: usize = 93;
 pub const SYS_READ: usize = 63;
 pub const SYS_EXEC: usize = 221;
+pub const SYS_FORK: usize = 220;
+
+fn sys_fork(tf: &mut TrapFrame) -> isize {
+    let new_thread = process::current_thread().fork(tf);
+    let tid = process::add_thread(new_thread);
+    tid as isize
+}
+
 
 pub fn syscall(id: usize, args: [usize; 3], tf: &mut TrapFrame) -> isize {
     match id {
+        SYS_FORK => sys_fork(tf),
         SYS_OPEN => sys_open(args[0] as *const u8, args[1] as i32),
         SYS_CLOSE => sys_close(args[0] as i32),
         SYS_READ => unsafe { sys_read(args[0], args[1] as *mut u8, args[2]) },

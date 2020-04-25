@@ -3,6 +3,7 @@ use riscv::register::sstatus;
 use riscv::register::{scause::Scause, sstatus::Sstatus};
 
 #[repr(C)]
+#[derive(Clone)]
 pub struct TrapFrame {
     pub x: [usize; 32],   // General registers
     pub sstatus: Sstatus, // Supervisor Status Register
@@ -45,6 +46,10 @@ impl Context {
         satp: usize,
     ) -> Self {
         ContextContent::new_user_thread(entry, ustack_top, satp).push_at(kstack_top)
+    }
+
+    pub unsafe fn new_fork(tf: &TrapFrame, kstack_top: usize, satp: usize) -> Context {
+        ContextContent::new_fork(tf, kstack_top, satp)
     }
 }
 
@@ -104,5 +109,20 @@ impl ContextContent {
         Context {
             content_addr: ptr as usize,
         }
+    }
+
+    unsafe fn new_fork(tf: &TrapFrame, kstack_top: usize, satp: usize) -> Context {
+        ContextContent {
+            ra: __trapret as usize,
+            satp,
+            s: [0; 12],
+            tf: {
+                let mut tf = tf.clone();
+                // fork function's ret value, the new process is 0
+                tf.x[10] = 0; // a0
+                tf
+            },
+        }
+            .push_at(kstack_top)
     }
 }

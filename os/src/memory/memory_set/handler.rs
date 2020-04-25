@@ -14,6 +14,13 @@ pub trait MemoryHandler: Debug + 'static {
     fn map(&self, pt: Arc<Mutex<PageTableImpl>>, va: usize, attr: &MemoryAttr);
     fn unmap(&self, pt: Arc<Mutex<PageTableImpl>>, va: usize);
     fn page_copy(&self, pt: Arc<Mutex<PageTableImpl>>, va: usize, src: usize, length: usize);
+    fn clone_map(
+        &self,
+        pt: Arc<Mutex<PageTableImpl>>,
+        src_pt: Arc<Mutex<PageTableImpl>>,
+        vaddr: usize,
+        attr: &MemoryAttr,
+    );
 }
 
 impl Clone for Box<dyn MemoryHandler> {
@@ -65,6 +72,15 @@ impl MemoryHandler for Linear {
             }
         }
     }
+    fn clone_map(
+        &self,
+        pt: Arc<Mutex<PageTableImpl>>,
+        _src_pt: Arc<Mutex<PageTableImpl>>,
+        vaddr: usize,
+        attr: &MemoryAttr,
+    ) {
+        self.map(pt, vaddr, attr);
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -108,6 +124,17 @@ impl MemoryHandler for ByFrame {
                 dst[i] = 0;
             }
         }
+    }
+    fn clone_map(
+        &self,
+        pt: Arc<Mutex<PageTableImpl>>,
+        src_pt: Arc<Mutex<PageTableImpl>>,
+        vaddr: usize,
+        attr: &MemoryAttr,
+    ) {
+        self.map(pt.clone(), vaddr, attr);
+        let data = src_pt.lock().get_page_slice_mut(vaddr);
+        pt.lock().get_page_slice_mut(vaddr).copy_from_slice(data);
     }
 }
 
@@ -157,6 +184,17 @@ impl MemoryHandler for ByFrameWithRpa {
                 dst[i] = 0;
             }
         }
+    }
+    fn clone_map(
+        &self,
+        pt: Arc<Mutex<PageTableImpl>>,
+        src_pt: Arc<Mutex<PageTableImpl>>,
+        vaddr: usize,
+        attr: &MemoryAttr,
+    ) {
+        self.map(pt.clone(), vaddr, attr);
+        let data = src_pt.lock().get_page_slice_mut(vaddr);
+        pt.lock().get_page_slice_mut(vaddr).copy_from_slice(data);
     }
 }
 
@@ -209,5 +247,16 @@ impl MemoryHandler for ByFrameSwappingOut {
                 dst[i] = 0;
             }
         }
+    }
+    fn clone_map(
+        &self,
+        pt: Arc<Mutex<PageTableImpl>>,
+        src_pt: Arc<Mutex<PageTableImpl>>,
+        vaddr: usize,
+        attr: &MemoryAttr,
+    ) {
+        self.map(pt.clone(), vaddr, attr);
+        let data = src_pt.lock().get_page_slice_mut(vaddr);
+        pt.lock().get_page_slice_mut(vaddr).copy_from_slice(data);
     }
 }
